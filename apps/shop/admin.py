@@ -1,25 +1,33 @@
 from django.contrib import admin
-from django.utils.html import mark_safe
 from django import forms
+
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django_2gis_maps.admin import DoubleGisAdmin
 
+from apps.shop.utils import ImageGet
 from apps.shop.models import (
-    Collection, Size, Product, Image, AboutUs, Contact, Rental, Delivery
+    Banner, Collection, Size, Detail, Image, Product, AboutUs, Contact, Rental,
 )
 
 
+@admin.register(Banner)
+class BannerAdmin(ImageGet, admin.ModelAdmin):
+    list_display = (
+        'id', 'name', 'url_name', 'get_image', 'in_main', 'in_clothes',
+        'in_about_us',
+    )
+    list_display_links = ('name', 'url_name',)
+    list_editable = ('in_main', 'in_clothes', 'in_about_us',)
+
+
 @admin.register(Collection)
-class CollectionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'get_image', 'is_active',)
+class CollectionAdmin(ImageGet, admin.ModelAdmin):
+    list_display = (
+        'id', 'name', 'get_image', 'created_at', 'updated_at', 'is_active',
+    )
     list_display_links = ('name',)
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ('is_active',)
-
-    def get_image(self, obj):
-        return mark_safe(f'<img src={obj.image.url} width="50" height="60"')
-
-    get_image.short_description = 'Изображение'
 
 
 @admin.register(Size)
@@ -28,22 +36,33 @@ class SizeAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
 
 
-class ImageInline(admin.TabularInline):
+class ImageInline(ImageGet, admin.TabularInline):
     model = Image
     extra = 1
     readonly_fields = ('get_image',)
 
-    def get_image(self, obj):
-        return mark_safe(f'<img src={obj.image.url} width="50" height="60"')
 
-    get_image.short_description = 'Изображение'
+class DetailAdminForm(forms.ModelForm):
+    description = forms.CharField(
+        label='Описание', widget=CKEditorUploadingWidget()
+    )
+
+    class Meta:
+        model = Detail
+        fields = ('title', 'description',)
+
+
+class DetailInline(admin.StackedInline):
+    form = DetailAdminForm
+    model = Detail
+    extra = 0
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'name', 'collection', 'price', 'discount_price', 'created_at',
-        'updated_at',  'is_active',
+        'updated_at', 'is_active',
     )
     list_display_links = ('name',)
     search_fields = ('name', 'collection__name',)
@@ -51,51 +70,36 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     save_on_top = True
     list_editable = ('is_active',)
-    inlines = [ImageInline]
-
-
-class DeliveryAdminForm(forms.ModelForm):
-    delivery = forms.CharField(
-        label='Доставка и возврат', widget=CKEditorUploadingWidget()
-    )
-
-    class Meta:
-        model = Delivery
-        fields = ('delivery', 'term',)
-
-
-@admin.register(Delivery)
-class DeliveryAdmin(admin.ModelAdmin):
-    form = DeliveryAdminForm
-    list_display = ('id', 'delivery', 'term',)
-    list_display_links = ('delivery', 'term',)
+    inlines = [ImageInline, DetailInline]
 
 
 class AboutUsAdminForm(forms.ModelForm):
+    title = forms.CharField(
+        label='Заголовок', widget=CKEditorUploadingWidget()
+    )
     description = forms.CharField(
         label='Описание', widget=CKEditorUploadingWidget()
     )
 
     class Meta:
         model = AboutUs
-        fields = ('description',)
+        fields = ('title', 'description',)
 
 
 @admin.register(AboutUs)
 class AboutUsAdmin(admin.ModelAdmin):
     form = AboutUsAdminForm
-    list_display = ('id', 'description',)
-    list_display_links = ('description',)
+    list_display = ('id', 'title', 'description',)
+    list_display_links = ('title', 'description',)
 
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
     list_display = (
-        'id', 'address', 'whatsapp', 'mail', 'instagram', 'vk', 'phone',
-        'work_time',
+        'id', 'phone', 'whatsapp', 'mail', 'instagram', 'vk', 'work_time',
     )
     list_display_links = (
-        'address', 'whatsapp', 'mail', 'instagram', 'vk', 'phone', 'work_time',
+        'phone', 'whatsapp', 'mail', 'instagram', 'vk', 'work_time',
     )
 
 

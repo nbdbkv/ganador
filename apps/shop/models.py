@@ -1,31 +1,77 @@
+from unidecode import unidecode
+
 from django.db import models
+from django.template import defaultfilters
 
 from django_2gis_maps import fields as map_fields
 from django_2gis_maps.mixins import DoubleGisMixin
 
 
-class CommonInfo(models.Model):
+def image_upload_to(instance, filename):
+    if isinstance(instance, Banner):
+        banner_name = defaultfilters.slugify(unidecode(instance.name))
+        return f'banner/{banner_name}/{filename}'
+    elif isinstance(instance, Collection):
+        collection_name = defaultfilters.slugify(unidecode(instance.name))
+        return f'collection/{collection_name}/{filename}'
+    elif isinstance(instance, Image):
+        collection_name = defaultfilters.slugify(
+            unidecode(instance.product.collection.name)
+        )
+        product_name = defaultfilters.slugify(
+            unidecode(instance.product.name)
+        )
+        return f'collection/{collection_name}/{product_name}/{filename}'
+
+
+class Abstract(models.Model):
     """Abstract base class with common information for other models."""
     name = models.CharField(
-        max_length=120, unique=True, verbose_name='Название'
+        max_length=120, unique=True, verbose_name='Название',
     )
-    slug = models.SlugField(max_length=120, unique=True)
-    is_active = models.BooleanField(verbose_name='Отобразить на странице')
+    slug = models.SlugField(max_length=120, unique=True,)
+    is_active = models.BooleanField(verbose_name='Отобразить на странице',)
     created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name='Дата создания'
+        auto_now_add=True, verbose_name='Дата создания',
     )
     updated_at = models.DateTimeField(
-        auto_now_add=True, verbose_name='Дата обновления'
+        auto_now=True, verbose_name='Дата обновления',
     )
 
     class Meta:
         abstract = True
 
 
-class Collection(CommonInfo):
+class Banner(models.Model):
+    """Model for creating a Banner object."""
+    name = models.CharField(
+        max_length=120, blank=True, verbose_name='Название баннера',
+    )
+    url_name = models.CharField(
+        max_length=60, blank=True, verbose_name='Название ccылки',
+    )
+    url = models.URLField(
+        max_length=200, blank=True, verbose_name='Сcылка',
+    )
+    image = models.ImageField(
+        upload_to=image_upload_to, verbose_name='Изображение',
+    )
+    in_main = models.BooleanField(verbose_name='Главная страница',)
+    in_clothes = models.BooleanField(verbose_name='Одежда',)
+    in_about_us = models.BooleanField(verbose_name='О нас',)
+
+    class Meta:
+        verbose_name = 'Баннер'
+        verbose_name_plural = 'Баннеры'
+
+    def __str__(self):
+        return self.name
+
+
+class Collection(Abstract):
     """Model for creating a Collection object."""
     image = models.ImageField(
-        upload_to='Collections/', verbose_name='Изображение'
+        upload_to=image_upload_to, verbose_name='Изображение',
     )
 
     class Meta:
@@ -36,41 +82,10 @@ class Collection(CommonInfo):
         return self.name
 
 
-class Product(CommonInfo):
-    """Model for creating a Product object."""
-    description = models.TextField(verbose_name='Описание')
-    price = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name='Цена'
-    )
-    discount_price = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name='Цена со скидкой'
-    )
-    material = models.CharField(max_length=120, verbose_name='Материал')
-    composition = models.CharField(max_length=120, verbose_name='Состав')
-    season = models.CharField(max_length=30, verbose_name='Сезон')
-    instruction = models.CharField(
-        max_length=120, verbose_name='Инструкция по уходу'
-    )
-    collection = models.ForeignKey(
-        to=Collection, on_delete=models.CASCADE,
-        related_name='collection_products', verbose_name='Коллекция'
-    )
-    size = models.ManyToManyField(
-        to='Size', related_name='size_products', verbose_name='Размер',
-    )
-
-    class Meta:
-        verbose_name = 'Товар'
-        verbose_name_plural = 'Товары'
-
-    def __str__(self):
-        return self.name
-
-
 class Size(models.Model):
     """Model for creating a Size object for Product."""
     name = models.CharField(
-        max_length=15, unique=True, verbose_name='Название'
+        max_length=15, unique=True, verbose_name='Название',
     )
 
     class Meta:
@@ -81,14 +96,62 @@ class Size(models.Model):
         return self.name
 
 
+class Product(Abstract):
+    """Model for creating a Product object."""
+    short_description = models.CharField(
+        max_length=120, verbose_name='Краткое описание',
+    )
+    description = models.TextField(verbose_name='Описание',)
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True, verbose_name='Цена',
+    )
+    discount_price = models.DecimalField(
+        max_digits=10, decimal_places=2, blank=True,
+        verbose_name='Цена со скидкой',
+    )
+    collection = models.ForeignKey(
+        to=Collection, on_delete=models.CASCADE,
+        related_name='collection_products', verbose_name='Коллекция',
+    )
+    size = models.ManyToManyField(
+        to=Size, related_name='size_products', verbose_name='Размер',
+    )
+
+    class Meta:
+        verbose_name = 'Товар'
+        verbose_name_plural = 'Товары'
+
+    def __str__(self):
+        return self.name
+
+
+class Detail(models.Model):
+    """Model for creating a Detail object for Product."""
+    title = models.CharField(
+        max_length=120, blank=True, verbose_name='Заголовок',
+    )
+    description = models.TextField(blank=True, verbose_name='Описание',)
+    product = models.ForeignKey(
+        to=Product, on_delete=models.CASCADE, related_name='details',
+        verbose_name='Товар',
+    )
+
+    class Meta:
+        verbose_name = 'Детали продукта'
+        verbose_name_plural = 'Детали продукта'
+
+    def __str__(self):
+        return self.product.name
+
+
 class Image(models.Model):
     """Model for creating an Image object for Product."""
     image = models.ImageField(
-        upload_to='Products/', verbose_name='Изображение'
+        upload_to=image_upload_to, verbose_name='Изображение',
     )
     product = models.ForeignKey(
         to=Product, on_delete=models.CASCADE, related_name='images',
-        verbose_name='Товар'
+        verbose_name='Товар',
     )
 
     class Meta:
@@ -99,36 +162,23 @@ class Image(models.Model):
         return self.product.name
 
 
-class Delivery(models.Model):
-    """Model for creating a Delivery object."""
-    delivery = models.TextField(blank=True, verbose_name='Доставка')
-    term = models.TextField(blank=True, verbose_name='Условия')
-
-    class Meta:
-        verbose_name = 'Доставка и возврат'
-        verbose_name_plural = 'Доставка и возврат'
-
-    def __str__(self):
-        return f'{self.delivery}, {self.term}'
-
-
 class AboutUs(models.Model):
     """Model for creating a AboutUs object."""
-    description = models.TextField(verbose_name='Описание')
+    title = models.CharField(
+        max_length=120, blank=True, verbose_name='Заголовок'
+    )
+    description = models.TextField(blank=True, verbose_name='Описание',)
 
     class Meta:
         verbose_name = 'О нас'
         verbose_name_plural = 'О нас'
 
     def __str__(self):
-        return self.description
+        return self.title
 
 
 class Contact(models.Model):
     """Model for creating a Contact object."""
-    address = models.CharField(
-        max_length=120, blank=True, verbose_name='Адрес'
-    )
     whatsapp = models.CharField(
         max_length=20, blank=True, verbose_name='WhatsApp'
     )
@@ -151,7 +201,7 @@ class Contact(models.Model):
         verbose_name_plural = 'Контакты'
 
     def __str__(self):
-        return self.address
+        return self.phone
 
 
 class Rental(DoubleGisMixin, models.Model):

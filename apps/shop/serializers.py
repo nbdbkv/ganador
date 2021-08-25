@@ -1,8 +1,14 @@
 from rest_framework import serializers
 
 from .models import (
-    Collection, Product, Image, Delivery, AboutUs, Contact, Rental
+    Banner, Collection, Image, Product, Detail, AboutUs, Contact, Rental,
 )
+
+
+class BannerListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Banner
+        fields = ('id', 'name', 'url_name', 'url', 'image',)
 
 
 class IndexCollectionListSerializer(serializers.ModelSerializer):
@@ -29,8 +35,8 @@ class ProductsByCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-            'id', 'slug', 'name', 'composition', 'price', 'discount_price',
-            'first_image',
+            'id', 'slug', 'name', 'short_description', 'price',
+            'discount_price', 'first_image',
         )
 
     def get_first_image(self, obj):
@@ -39,39 +45,38 @@ class ProductsByCollectionSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(first_image_url)
 
 
+class DetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Detail
+        fields = ('id', 'title', 'description',)
+
+
 class ProductDetailSerializer(serializers.ModelSerializer):
     size = serializers.SlugRelatedField(
         slug_field='name', read_only=True, many=True
     )
+    details = DetailSerializer(many=True)
     images = ImageSerializer(many=True)
 
     class Meta:
         model = Product
         fields = (
             'id', 'slug', 'name', 'description', 'price', 'discount_price',
-            'size', 'material', 'composition', 'season', 'instruction',
-            'images',
+            'size', 'details', 'images',
         )
-
-
-class DeliveryListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Delivery
-        fields = ('id', 'delivery', 'term',)
 
 
 class AboutUsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = AboutUs
-        fields = ('id', 'description',)
+        fields = ('id', 'title', 'description',)
 
 
 class ContactListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = (
-            'id', 'address', 'whatsapp', 'mail', 'instagram', 'vk', 'phone',
-            'work_time',
+            'id', 'whatsapp', 'mail', 'instagram', 'vk', 'phone', 'work_time',
         )
 
 

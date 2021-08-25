@@ -22,8 +22,8 @@ INSTALLED_APPS = [
     'ckeditor_uploader',
     'django_2gis_maps',
     'drf_yasg',
+    'solo',
 
-    # 'apps.templates_app',
     'apps.shop',
 ]
 
@@ -41,7 +41,7 @@ MIDDLEWARE = [
 ]
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:3000',
-    'http://127.0.0.1:8000',
+    'http://localhost:8000',
 )
 
 ROOT_URLCONF = 'core.urls'
@@ -87,7 +87,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
