@@ -15,15 +15,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third party
     'debug_toolbar',
     'rest_framework',
-    'corsheaders',
+    'adminsortable2',
+    'solo',
     'ckeditor',
     'ckeditor_uploader',
     'django_2gis_maps',
+    'corsheaders',
     'drf_yasg',
-    'solo',
+    'django_cleanup.apps.CleanupConfig',
 
+    # Local
     'apps.shop',
 ]
 

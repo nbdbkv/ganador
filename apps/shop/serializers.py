@@ -1,31 +1,32 @@
 from rest_framework import serializers
 
 from .models import (
-    Banner, Collection, Image, Product, Detail, AboutUs, Contact, Rental,
+    MainPageBanner, MainPageImage, Collection, ProductImage, Product,
+    ProductAdditional, AboutUs, Contact,
 )
 
 
-class BannerListSerializer(serializers.ModelSerializer):
+class MainPageBannerListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Banner
-        fields = ('id', 'name', 'url_name', 'url', 'image',)
+        model = MainPageBanner
+        fields = ('id', 'name', 'url', 'image',)
 
 
-class IndexCollectionListSerializer(serializers.ModelSerializer):
+class MainPageImageListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MainPageImage
+        fields = ('id', 'name', 'url', 'image',)
+
+
+class MainPageCollectionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         fields = ('id', 'slug', 'name', 'image',)
 
 
-class CollectionListSerializer(serializers.ModelSerializer):
+class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Collection
-        fields = ('id', 'slug', 'name',)
-
-
-class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Image
+        model = ProductImage
         fields = ('image',)
 
 
@@ -35,8 +36,8 @@ class ProductsByCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = (
-            'id', 'slug', 'name', 'short_description', 'price',
-            'discount_price', 'first_image',
+            'id', 'slug', 'name', 'short_description', 'old_price',
+            'new_price', 'first_image',
         )
 
     def get_first_image(self, obj):
@@ -45,9 +46,9 @@ class ProductsByCollectionSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(first_image_url)
 
 
-class DetailSerializer(serializers.ModelSerializer):
+class ProductAdditionalSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Detail
+        model = ProductAdditional
         fields = ('id', 'title', 'description',)
 
 
@@ -55,32 +56,31 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     size = serializers.SlugRelatedField(
         slug_field='name', read_only=True, many=True
     )
-    details = DetailSerializer(many=True)
-    images = ImageSerializer(many=True)
+    additionals = ProductAdditionalSerializer(many=True)
+    images = ProductImageSerializer(many=True)
 
     class Meta:
         model = Product
         fields = (
-            'id', 'slug', 'name', 'description', 'price', 'discount_price',
-            'size', 'details', 'images',
+            'id', 'slug', 'name', 'description', 'old_price', 'new_price',
+            'size', 'additionals', 'images',
         )
 
 
 class AboutUsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = AboutUs
-        fields = ('id', 'title', 'description',)
+        fields = (
+            'id', 'description', 'title_production', 'text_production',
+            'title_manufacture', 'text_manufacture', 'fabric_image', 'image_1',
+            'url_1', 'image_2', 'url_2',
+        )
 
 
 class ContactListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = (
-            'id', 'whatsapp', 'mail', 'instagram', 'vk', 'phone', 'work_time',
+            'id', 'address', 'geolocation', 'whatsapp', 'whatsapp', 'mail',
+            'instagram', 'vk', 'phone_1', 'phone_2', 'work_time',
         )
-
-
-class RentalListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Rental
-        fields = ('id', 'address', 'geolocation',)
