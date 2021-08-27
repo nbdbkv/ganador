@@ -1,12 +1,13 @@
 from django.urls import path
 
 from apps.shop.views import (
-    MainPageView, ProductsByCollectionView, ProductDetailView, AboutUsListView,
-    ContactListView,
+    MainPageView, CollectionListView, ProductsByCollectionView,
+    ProductDetailView, AboutUsListView, ContactListView,
 )
 
 urlpatterns = [
     path('', MainPageView.as_view()),
+    path('clothes/', CollectionListView.as_view()),
     path('clothes/<int:collection_pk>/', ProductsByCollectionView.as_view()),
     path(
         'clothes/<int:collection_pk>/products/<int:product_pk>/',

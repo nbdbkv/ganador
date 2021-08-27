@@ -6,8 +6,9 @@ from apps.shop.models import (
 )
 from apps.shop.serializers import (
     MainPageBannerListSerializer, MainPageImageListSerializer,
-    MainPageCollectionListSerializer, ProductsByCollectionSerializer,
-    ProductDetailSerializer, AboutUsListSerializer, ContactListSerializer,
+    MainPageCollectionListSerializer, CollectionListSerializer,
+    ProductsByCollectionSerializer, ProductDetailSerializer,
+    AboutUsListSerializer, ContactListSerializer,
 )
 
 
@@ -37,6 +38,11 @@ class MainPageView(ListAPIView):
                 'image': image.data,
             }
         )
+
+
+class CollectionListView(ListAPIView):
+    queryset = Collection.objects.all()
+    serializer_class = CollectionListSerializer
 
 
 class ProductsByCollectionView(ListAPIView):

@@ -24,6 +24,12 @@ class MainPageCollectionListSerializer(serializers.ModelSerializer):
         fields = ('id', 'slug', 'name', 'image',)
 
 
+class CollectionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Collection
+        fields = ('id', 'slug', 'name',)
+
+
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
