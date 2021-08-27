@@ -1,4 +1,3 @@
-from django.db.models import Prefetch
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 
@@ -48,7 +47,7 @@ class ProductsByCollectionView(ListAPIView):
         return Product.objects.filter(
             is_active=True,
             collection_id=self.kwargs['collection_pk']
-        ).prefetch_related(Prefetch('images'))
+        ).prefetch_related('images')
 
 
 class ProductDetailView(RetrieveAPIView):
