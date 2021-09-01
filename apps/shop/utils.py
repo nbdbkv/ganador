@@ -7,12 +7,16 @@ from django.template import defaultfilters
 def image_upload_to(instance, filename):
     class_name = defaultfilters.slugify(unidecode(instance.__class__.__name__))
     if hasattr(instance, 'name'):
-        return f'{class_name}/' \
-               f'{defaultfilters.slugify(unidecode(instance.name))}/{filename}'
+        return (
+            f'{class_name}/'
+            f'{defaultfilters.slugify(unidecode(instance.name))}/{filename}'
+        )
     elif hasattr(instance, 'product'):
-        return f'{class_name}/' \
-               f'{defaultfilters.slugify(unidecode(instance.product.name))}/' \
-               f'{filename}'
+        return (
+            f'{class_name}/'
+            f'{defaultfilters.slugify(unidecode(instance.product.name))}/'
+            f'{filename}'
+        )
     elif hasattr(instance, 'title_production'):
         return f'{class_name}/{filename}'
 

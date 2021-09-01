@@ -31,13 +31,11 @@ class MainPageView(ListAPIView):
             self.queryset_image, many=True, context={'request': request}
         )
 
-        return Response(
-            {
-                'banner': banner.data,
-                'collection': collection.data,
-                'image': image.data,
-            }
-        )
+        return Response({
+            'banner': banner.data,
+            'collection': collection.data,
+            'image': image.data,
+        })
 
 
 class CollectionListView(ListAPIView):
